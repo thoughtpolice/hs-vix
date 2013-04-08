@@ -2,7 +2,9 @@
 
 [![Build Status](https://secure.travis-ci.org/thoughtpolice/hs-vix?branch=master)](http://travis-ci.org/thoughtpolice/hs-vix)
 
-This is my Haskell package template.
+This package provides fairly complete Haskell bindings to VMware's
+[VIX][vixapi] API, allowing you to control and automate virtual
+machines using VMware infrastructure easily.
 
 # Installation
 
@@ -40,3 +42,4 @@ for terms of copyright and redistribution.
 [gh]: http://github.com/thoughtpolice/hs-vix
 [bb]: http://bitbucket.org/thoughtpolice/hs-vix
 [Hackage]: http://hackage.haskell.org/package/vix
+[vixapi]: http://www.vmware.com/support/developer/vix-api/index.html
