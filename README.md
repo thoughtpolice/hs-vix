@@ -1,6 +1,6 @@
 # VMware VIX bindings for Haskell
 
-[![Build Status](https://secure.travis-ci.org/thoughtpolice/hs-vix?branch=master)](http://travis-ci.org/thoughtpolice/hs-vix)
+[![Build Status](https://secure.travis-ci.org/thoughtpolice/hs-vix.png?branch=master)](http://travis-ci.org/thoughtpolice/hs-vix)
 
 This package provides fairly complete Haskell bindings to VMware's
 [VIX][vixapi] API, allowing you to control and automate virtual
