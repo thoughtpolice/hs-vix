@@ -42,8 +42,10 @@ module System.VMware.VIX.FFI
     ) where
 
 import Data.Int
+import Data.Word
 import Data.Bits ((.&.))
 import Data.Maybe (fromMaybe)
+import Foreign.Ptr
 import Foreign.C.Types
 import Foreign.C.String
 
@@ -56,6 +58,7 @@ import Foreign.C.String
 type C_VixHandle           = #{type VixHandle}
 type C_VixServiceProvider  = #{type VixServiceProvider}
 type C_VixVMPowerOpOptions = #{type VixVMPowerOpOptions}
+type C_VixError            = #{type VixError}
 
 --
 -- Constants
@@ -94,11 +97,15 @@ c_VIX_INVALID_HANDLE :: C_VixHandle
 c_VIX_INVALID_HANDLE = #{const VIX_INVALID_HANDLE}
 
 
+--
+-- Functions
+--
+
 -- | Lookup a VIX error code and return the error message for it.
-c_VIX_GET_ERROR_MSG :: CInt -> String
+c_VIX_GET_ERROR_MSG :: Integral a => a -> String
 c_VIX_GET_ERROR_MSG x
   = fromMaybe (error "Could not find VIX error code!")
-  $ lookup (c_VIX_GET_ERROR_CODE x) c_VIX_ERROR_CODES
+  $ lookup (c_VIX_GET_ERROR_CODE $ fromIntegral x) c_VIX_ERROR_CODES
 
 -- | Given a returned 'CInt' from a function, representing the VIX
 -- error code, mask out the required bits to match the right case
@@ -109,27 +116,30 @@ c_VIX_GET_ERROR_CODE x = x .&. 0xFFFF
 
 
 --
--- Functions
+-- FFI Functions
 --
 
 foreign import ccall unsafe "hs_vix_connect"
   c_vix_connect :: CString -> CString -> CString -> CInt ->
-                   C_VixServiceProvider -> IO C_VixHandle
+                   C_VixServiceProvider -> Ptr C_VixError ->
+                   IO C_VixHandle
 
 foreign import ccall unsafe "hs_vix_disconnect"
   c_vix_disconnect :: C_VixHandle -> IO ()
 
 foreign import ccall unsafe "hs_vix_vm_open"
-  c_vix_vm_open :: C_VixHandle -> CString -> IO C_VixHandle
+  c_vix_vm_open :: C_VixHandle -> CString -> Ptr C_VixError ->
+                   IO C_VixHandle
 
 foreign import ccall unsafe "hs_vix_vm_close"
   c_vix_vm_close :: C_VixHandle -> IO ()
 
 foreign import ccall unsafe "hs_vix_vm_poweron"
-  c_vix_vm_poweron :: C_VixHandle -> C_VixVMPowerOpOptions -> IO CInt
+  c_vix_vm_poweron :: C_VixHandle -> C_VixVMPowerOpOptions ->
+                      Ptr C_VixError -> IO CInt
 
 foreign import ccall unsafe "hs_vix_vm_poweroff"
-  c_vix_vm_poweroff :: C_VixHandle -> IO CInt
+  c_vix_vm_poweroff :: C_VixHandle -> Ptr C_VixError -> IO CInt
 
 
 --

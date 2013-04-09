@@ -2,10 +2,10 @@
 
 VixHandle
 hs_vix_connect(const char* host, const char* user, const char* pass, int port,
-	       VixServiceProvider conntype)
+	       VixServiceProvider conntype, VixError* errOut)
 {
-  VixError err;
-  
+  VixError err = VIX_OK;
+
   VixHandle jobHandle  = VIX_INVALID_HANDLE;
   VixHandle hostHandle = VIX_INVALID_HANDLE;
 
@@ -19,9 +19,11 @@ hs_vix_connect(const char* host, const char* user, const char* pass, int port,
 		    &hostHandle,
 		    VIX_PROPERTY_NONE);
   if (VIX_FAILED(err)) {
+    *errOut = err;
     goto abort;
   }
 
+  *errOut = VIX_OK;
   Vix_ReleaseHandle(jobHandle);
   return hostHandle;
 
@@ -39,9 +41,9 @@ hs_vix_disconnect(VixHandle hdl)
 
 
 VixHandle
-hs_vix_vm_open(VixHandle host, const char* vmxpath)
+hs_vix_vm_open(VixHandle host, const char* vmxpath, VixError* errOut)
 {
-  VixError err;
+  VixError err = VIX_OK;
   VixHandle jobHandle = VIX_INVALID_HANDLE;
   VixHandle vmHandle  = VIX_INVALID_HANDLE;
 
@@ -53,9 +55,11 @@ hs_vix_vm_open(VixHandle host, const char* vmxpath)
 		    &vmHandle,
 		    VIX_PROPERTY_NONE);
   if (VIX_FAILED(err)) {
+    *errOut = err;
     goto abort;
   }
-
+  
+  *errOut = VIX_OK;
   Vix_ReleaseHandle(jobHandle);
   return vmHandle;
 
@@ -73,10 +77,11 @@ hs_vix_vm_close(VixHandle hdl)
 
 
 int
-hs_vix_vm_poweron(VixHandle hdl, VixVMPowerOpOptions poweropts)
+hs_vix_vm_poweron(VixHandle hdl, VixVMPowerOpOptions poweropts,
+		  VixError* errOut)
 {
   int res = 0;
-  VixError err;
+  VixError err = VIX_OK;
   VixHandle job = VIX_INVALID_HANDLE;
 
   job = VixVM_PowerOn(hdl, poweropts, VIX_INVALID_HANDLE, NULL, NULL);
@@ -85,12 +90,13 @@ hs_vix_vm_poweron(VixHandle hdl, VixVMPowerOpOptions poweropts)
   res = 1; /* Success */
 
  abort:
+  *errOut = err;
   Vix_ReleaseHandle(job);
   return res;
 }
 
 int
-hs_vix_vm_poweroff(VixHandle hdl)
+hs_vix_vm_poweroff(VixHandle hdl, VixError* errOut)
 {
   int res = 0;
   VixError err;
@@ -102,6 +108,7 @@ hs_vix_vm_poweroff(VixHandle hdl)
   res = 1; /* Success */
 
  abort:
+  *errOut = err;
   Vix_ReleaseHandle(job);
   return res;
 }

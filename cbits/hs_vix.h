@@ -6,15 +6,15 @@
 
 /** Connecting/disconnecting from remote hosts */
 VixHandle hs_vix_connect(const char*, const char*, const char*, int,
-			 VixServiceProvider);
+			 VixServiceProvider, VixError*);
 void      hs_vix_disconnect(VixHandle);
 
 /** Opening/closing VMs */
-VixHandle hs_vix_vm_open(VixHandle, const char*);
+VixHandle hs_vix_vm_open(VixHandle, const char*, VixError*);
 void      hs_vix_vm_close(VixHandle);
 
 /** Powering on/off */
-int hs_vix_vm_poweron(VixHandle, VixVMPowerOpOptions);
-int hs_vix_vm_poweroff(VixHandle);
+int hs_vix_vm_poweron(VixHandle, VixVMPowerOpOptions, VixError*);
+int hs_vix_vm_poweroff(VixHandle, VixError*);
 
 #endif /* __HS_VIX__ */
