@@ -14,6 +14,7 @@ module System.VMware.VIX.FFI
       C_VixHandle
     , C_VixServiceProvider
     , C_VixVMPowerOpOptions
+    , C_VixError
 
       -- * Constants
       -- ** Service Providers

@@ -10,19 +10,26 @@
 -- VMware VIX API bindings.
 --
 module System.VMware.VIX
-    ( -- * Types
-      ConnInfo(..)  -- :: *
-    , HostHandle    -- :: *
-    , VMHandle      -- :: *
-      
-      -- * Functions
+    ( -- * VIX API
       -- ** Connecting to VMware instances
-    , connect       -- :: *
-    , disconnect    -- :: *
+      Hostname      -- :: *
+    , Port          -- :: *
+    , Username      -- :: *
+    , Password      -- :: *
+    , ConnInfo(..)  -- :: *
+    , HostHandle    -- :: *
+    , connect       -- :: ...
+    , disconnect    -- :: ...
       
-      -- ** Opening virtual machines
-    , openVM        -- :: *
-    , closeVM       -- :: *
+      -- ** Opening, listing VMs
+    , VMHandle      -- :: *
+    , openVM        -- :: ...
+    , closeVM       -- :: ...
+
+      -- ** Powering on/off and suspending VMs
+    , PowerOpts(..)
+    , powerOn       -- :: ...
+    , powerOff      -- :: ...
     ) where
 
 import Data.Maybe (fromMaybe)
@@ -34,9 +41,18 @@ import Foreign.C
 
 import System.VMware.VIX.FFI
 
+-- | VMware server hostname.
 type Hostname = String
+
+-- | VMware server API port. Default is 443.
 type Port     = Int
+
+-- | VMware server username. This should be the account
+-- to log into remotely (for example, the unix username your
+-- VMware workstation software is running on.)
 type Username = String
+
+-- | VMware server password.
 type Password = String
 
 -- | The type of system you want to connect to
@@ -115,6 +131,42 @@ closeVM :: VMHandle -> IO ()
 closeVM (VMHandle hdl) = modifyMVar_ hdl $ \hdl_ ->
   c_vix_vm_close hdl_ >> return c_VIX_INVALID_HANDLE
 
+-- | Power options for a VM.
+data PowerOpts
+  = VMPowerNormal
+    -- ^ Power on the virtual machine and continue.
+  | VMPowerLaunchGUI
+    -- ^ Launch a GUI when powering on the VM.
+    --
+    -- Only valid with local VMware Workstation and VMware Player
+    -- instances.
+    --
+    -- Does not work with encrypted virtual machines. Will return
+    -- a 'not supported' exception.
+    deriving (Eq, Show)
+
+-- | Power on a virtual machine.
+powerOn :: VMHandle -> PowerOpts -> IO (Either String ())
+powerOn (VMHandle hdl) opts = withMVar hdl $ \hdl_ ->
+  alloca $ \errOut -> do
+    let poweropt | opts == VMPowerLaunchGUI = c_VIX_VMPOWEROP_LAUNCH_GUI
+                 | otherwise                = c_VIX_VMPOWEROP_NORMAL
+    res <- c_vix_vm_poweron hdl_ poweropt errOut
+    wrapE errOut (res == 1) ()
+
+-- | Power off a virtual machine.
+powerOff :: VMHandle -> IO (Either String ())
+powerOff (VMHandle hdl) = withMVar hdl $ \hdl_ ->
+  alloca $ \errOut -> do
+    res <- c_vix_vm_poweroff hdl_ errOut
+    wrapE errOut (res == 1) ()
+
 --
 -- Utilities
 --
+
+wrapE :: Ptr C_VixError -> Bool -> r -> IO (Either String r)
+wrapE x b r =
+  if b then return (Right r)
+   else (c_VIX_GET_ERROR_MSG <$> peek x) >>= return . Left
+{-# INLINE wrapE #-}
